@@ -1,24 +1,48 @@
 import requests
+import os
+from relevancy_check import RelevancyCheck
+import time
 
 class BingNewsSearch:
-
-    BASE_URL = "https://api.bing.microsoft.com/v7.0/news/search"
-    HEADERS = {
-        "Ocp-Apim-Subscription-Key": "09a7a538f34f4f28bc029de2cd68248f"
-    }
-
+    BING_ENDPOINT = "https://api.bing.microsoft.com/v7.0/news/search"
+    
     @classmethod
-    def get_news_urls(cls, query, count=10):
-        params = {
-            "q": query,
-            "count": count,
-            "textDecorations": True,
-            "textFormat": "HTML"
+    def get_news_url(cls, state, count=5):
+        base_url = "https://api.bing.microsoft.com/v7.0/news/search"
+        
+        # Prepare the query
+        query_terms = [
+            "superintendent resigns",
+            "superintendent steps down",
+            "superintendent departure",
+            "superintendent leaves",
+            "superintendent fired",
+            "superintendent hired",
+            "superintendent appointed",
+            "superintendent retirement",
+        ]
+        query = f"({' OR '.join(query_terms)}) {state} -college"
+        
+        headers = {
+            'Ocp-Apim-Subscription-Key': os.environ.get("BING_API_KEY")
         }
-
-        response = requests.get(cls.BASE_URL, headers=cls.HEADERS, params=params)
-        response.raise_for_status()
-
+        
+        params = {
+            'q': query,
+            'count': count,
+            'mkt': 'en-US',
+            'safeSearch': 'Off',
+            'textFormat': 'HTML'
+        }
+        
+        response = requests.get(base_url, headers=headers, params=params)
+        time.sleep(1)
         data = response.json()
-        urls = [value['url'] for value in data['value']]
+        
+        if "value" not in data:
+            print(f"No URLs returned from Bing for {state}.")
+            return []
+        
+        urls = [item['url'] for item in data['value']]
+        
         return urls

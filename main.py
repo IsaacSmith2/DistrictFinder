@@ -1,46 +1,49 @@
-import time
-from relevancy_check import RelevancyCheck
+import os
+from get_url_factory import BingNewsSearch
 from article_scraper import ArticleScraper
 from formater import Formatter
+from relevancy_check import RelevancyCheck
 from district_inspector import DistrictInspector
-from get_url_factory import BingNewsSearch
+from url_history import URLHistory
 
 def main():
-    processed_urls = set()
-    query = "superintendent resigns OR superintendent steps down OR superintendent departure OR superintendent leaves -college"
+    # List of states
+    states = ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado",
+              "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois",
+              "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland",
+              "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana",
+              "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York",
+              "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania",
+              "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah",
+              "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"]
     
-    # Fetch URLs from Bing News Search
-    urls = BingNewsSearch.get_news_urls(query, count=10)
-    
-    for article_url in urls:
-        print(f"Processing article URL: {article_url}")
-        if article_url in processed_urls:
-            print(f"URL {article_url} has already been processed. Skipping.")
-            continue
+    # Looping through states and searching articles
+    for state in states:
+        print(f"\nSearching articles for {state}...")
+        urls = BingNewsSearch.get_news_url(state)
         
-        # This is a simulated delay to prevent overloading the server. You can adjust the time as required.
-        time.sleep(2)
-
-        try:
-            scraper = ArticleScraper(article_url)
+        for url in urls:
+            print(f"Processing article URL: {url}")
+            
+            # Check if URL has been processed before
+            if URLHistory.check_and_add(url):
+                print(f"URL {url} has already been processed. Skipping.")
+                continue
+            
+            scraper = ArticleScraper(url)
             raw_html = scraper.get_raw_data()
             
+            # Format the article content
             formatter = Formatter(raw_html)
             formatted_article = formatter.format_content()
-
-            if not RelevancyCheck.check_relevancy(formatted_article):
-                print(f"Article from URL: {article_url} is not relevant. Skipping.")
-                continue
-
+            
+            # Extract district name
             inspector = DistrictInspector(formatted_article)
             district_name = inspector.get_district_name()
-
-            print(f"District Name: {district_name}")
             
-            processed_urls.add(article_url)
+            print(f"Found district: {district_name}")
+            
 
-        except Exception as e:
-            print(f"Error processing article {article_url}. Error: {e}")
 
 if __name__ == "__main__":
     main()
