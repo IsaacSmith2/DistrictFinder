@@ -1,5 +1,3 @@
-# formatter.py
-
 from bs4 import BeautifulSoup
 
 class Formatter:
@@ -7,6 +5,11 @@ class Formatter:
         self.raw_html = raw_html
 
     def format_content(self):
+        # Check if raw_html is None or an empty string
+        if not self.raw_html:
+            print("No content to format.")
+            return ""
+
         soup = BeautifulSoup(self.raw_html, 'html.parser')
 
         # Remove all script and style elements

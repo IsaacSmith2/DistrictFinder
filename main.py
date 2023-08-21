@@ -6,6 +6,11 @@ from relevancy_check import RelevancyCheck
 from district_inspector import DistrictInspector
 from url_history import URLHistory
 
+def log_to_file(message):
+    with open("output.txt", "a") as f:
+        f.write(message + "\n")
+    print(message)
+
 def main():
     # List of states
     states = ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado",
@@ -19,15 +24,15 @@ def main():
     
     # Looping through states and searching articles
     for state in states:
-        print(f"\nSearching articles for {state}...")
+        log_to_file(f"\nSearching articles for {state}...")
         urls = BingNewsSearch.get_news_url(state)
         
         for url in urls:
-            print(f"Processing article URL: {url}")
+            log_to_file(f"Processing article URL: {url}")
             
             # Check if URL has been processed before
             if URLHistory.check_and_add(url):
-                print(f"URL {url} has already been processed. Skipping.")
+                log_to_file(f"URL {url} has already been processed. Skipping.")
                 continue
             
             scraper = ArticleScraper(url)
@@ -41,7 +46,7 @@ def main():
             inspector = DistrictInspector(formatted_article)
             district_name = inspector.get_district_name()
             
-            print(f"Found district: {district_name}")
+            log_to_file(f"Found district: {district_name}")
             
 
 
